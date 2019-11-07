@@ -1,0 +1,68 @@
+apply plugin: 'com.android.application'
+
+repositories {
+    maven {
+        url 'https://dl.bintray.com/textile/maven'
+    }
+}
+
+android {
+    compileSdkVersion targetSdk
+
+    defaultConfig {
+        applicationId demoAppId
+        minSdkVersion minSdk
+        targetSdkVersion targetSdk
+        versionCode 1
+        versionName '1.0'
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // UI
+    // implementation "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
+    implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
+
+    // Support
+    // implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
+    implementation "com.android.support:appcompat-v7:$appcompatVersion"
+    implementation "com.android.support:support-v4:$appcompatVersion"
+
+    // gRPC IPFS Lite
+//    implementation "io.textile:grpc-ipfs-lite:$libraryVersion"
+    implementation project(':ipfslite')
+
+    // Testing
+    testImplementation "junit:junit:$junitVersion"
+
+    // Core library
+    // androidTestImplementation "androidx.test:core:$androidxTestCoreVersion"
+
+    // AndroidJUnitRunner and JUnit Rules
+    // androidTestImplementation "androidx.test:runner:$androidxTestRunnerVersion"
+    // androidTestImplementation "androidx.test:rules:$androidxTestRulesVersion"
+    androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
+
+    // Assertions
+    // androidTestImplementation "androidx.test.ext:junit:$androidxTestExtJunitVersion"
+    // androidTestImplementation "androidx.test.ext:truth:$androidxTestExtTruthVersion"
+
+    // Espresso dependencies (maybe needed in the future)
+    // androidTestImplementation "androidx.test.espresso:espresso-core:$androidxTestEspressoVersion"
+}
