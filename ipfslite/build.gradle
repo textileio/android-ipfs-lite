@@ -51,7 +51,7 @@ android {
 
 dependencies {
     // gRPC IPFS Lite
-    api "io.textile:grpc-Peer-lite:$gRPCIpfsVersion"
+    api "io.textile:grpc-ipfs-lite:$gRPCIpfsVersion"
 
     implementation "io.grpc:grpc-core:$gRPCVersion"
 

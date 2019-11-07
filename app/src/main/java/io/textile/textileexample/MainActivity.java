@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClick(View v) {
         try {
-            String file = litePeer.getFile("QmcfJ7FHfjBFD5ga3nLsxvdShcrnqQeEm6vaqByqd6BZMi");
+            String file = litePeer.getFile("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPU");
             System.out.println(file);
         } catch (Exception e) {
             System.out.println(e.getMessage());
