@@ -45,7 +45,7 @@ dependencies {
     implementation "com.android.support:support-v4:$appcompatVersion"
 
     // gRPC IPFS Lite
-//    implementation "io.textile:grpc-ipfs-lite:$libraryVersion"
+//    implementation "io.textile:grpc-Peer-lite:$libraryVersion"
     implementation project(':ipfslite')
 
     // Testing

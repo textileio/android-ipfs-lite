@@ -16,7 +16,7 @@ ext {
 
     libraryVersion = '0.0.1-rc0'
 
-    minSdk = 24
+    minSdk = 26
     targetSdk = 28
 
     // Gradle classpath dependencies versions
@@ -38,8 +38,12 @@ ext {
     // androidxAppcompatVersion = '1.0.2'
     appcompatVersion = '28.0.0'
 
+    // gRPC Version
+    gRPCVersion = '1.25.0'
     // gRPC IPFS Lite Version
-    gRPCVersion = '0.0.1-rc0'
+    gRPCIpfsVersion = '0.0.1-rc0'
+
+    protobufVersion = '3.10.0'
 
     // Lifecycle
     lifecycleVersion = '1.1.1'

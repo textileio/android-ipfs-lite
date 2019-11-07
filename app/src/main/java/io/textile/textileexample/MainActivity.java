@@ -7,9 +7,11 @@ import android.view.View;
 
 import java.io.File;
 
-import io.textile.ipfslite.ipfs;
+import io.textile.ipfslite.Peer;
 
 public class MainActivity extends AppCompatActivity {
+
+    Peer litePeer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,11 +22,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onButtonClick(View v) {
-        ipfs.stop();
-        System.out.println("Stopped ?");
         try {
-            ipfs.start();
-            System.out.println("Started ?");
+            String file = litePeer.getFile("QmcfJ7FHfjBFD5ga3nLsxvdShcrnqQeEm6vaqByqd6BZMi");
+            System.out.println(file);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -37,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
             final File filesDir = ctx.getFilesDir();
 //            final String path = filesDir.getAbsolutePath();
             final String path = new File(filesDir, "ipfslite").getAbsolutePath();
-            ipfs.initialize(path);
-            ipfs.start();
+            litePeer = new Peer(path);
+            litePeer.start();
             System.out.println("Started ?");
         } catch (Exception e) {
             System.out.println(e.getMessage());

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.google.protobuf'
 
 repositories {
     maven {
@@ -37,13 +38,32 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    sourceSets {
+        main {
+            java {
+                srcDirs 'build/generated/source/proto/debug/grpc'
+                srcDirs 'build/generated/source/proto/debug/java'
+            }
+        }
+    }
+
 }
 
 dependencies {
     // gRPC IPFS Lite
-    api "io.textile:grpc-ipfs-lite:$gRPCVersion"
+    api "io.textile:grpc-Peer-lite:$gRPCIpfsVersion"
+
+    implementation "io.grpc:grpc-core:$gRPCVersion"
+
+    implementation "io.grpc:grpc-okhttp:$gRPCVersion"
+//    implementation "io.grpc:grpc-netty-shaded:$gRPCVersion"
+    testImplementation "io.grpc:grpc-testing:$gRPCVersion"
+
+    implementation "io.grpc:grpc-protobuf:$gRPCVersion"
+    implementation "io.grpc:grpc-stub:$gRPCVersion"
+    implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
     // Textile
-//    implementation project(':ipfs-lite')
+//    implementation project(':Peer-lite')
 
     // Support
     // implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
@@ -53,6 +73,7 @@ dependencies {
     // Lifecycle
     implementation "android.arch.lifecycle:extensions:$lifecycleVersion"
     annotationProcessor "android.arch.lifecycle:compiler:$lifecycleVersion"
+    compileOnly "javax.annotation:javax.annotation-api:1.2"
 
     // Testing
     testImplementation "junit:junit:$junitVersion"
@@ -164,3 +185,19 @@ bintray {
     }
 }
 
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.9.1"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:$gRPCVersion"
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            java {}
+            grpc {}
+        }
+    }
+}
