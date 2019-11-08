@@ -1,3 +1,9 @@
+
+workflow "PR" {
+  on = "push"
+  resolves = "Run UI Tests"
+}
+
 action "Run UI Tests" {
   needs = ["Build"]
   uses = "vgaidarji/android-github-actions/emulator@v1.0.0"
