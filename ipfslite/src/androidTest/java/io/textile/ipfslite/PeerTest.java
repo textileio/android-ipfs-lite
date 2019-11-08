@@ -104,7 +104,7 @@ public class PeerTest {
 
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         // TODO change this to TEST1 after max size increasted on grpc server
-        File input1 = PeerTest.getCacheFile(ctx, "TEST2.JPG");
+        File input1 = PeerTest.getCacheFile(ctx, "TEST0.JPG");
 
         byte[] fileBytes = Files.readAllBytes(input1.toPath());
         String cid = litePeer.addFile(fileBytes);
