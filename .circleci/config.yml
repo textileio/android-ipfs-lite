@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   tests:
     docker:
-      - image: circleci/android:api-28-alpha
+      - image: circleci/android:api-28-ndk
     steps:
       - checkout
       - restore_cache:
