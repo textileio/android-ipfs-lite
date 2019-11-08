@@ -147,8 +147,8 @@ public class Peer implements LifecycleObserver {
             // Start stream
             AddFileRequest.Builder requestHeader = FileRequestHeader();
             requestObserver.onNext(requestHeader.build());
-            // Send file segments of 32kb
-            int blockSize = 32000;
+            // Send file segments of 1024b
+            int blockSize = 1024;
             int blockCount = (data.length + blockSize - 1) / blockSize;
 
             byte[] range = null;
