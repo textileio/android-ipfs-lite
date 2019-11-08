@@ -34,7 +34,7 @@ public class PeerTest {
 
     static String REPO_NAME = "ipfslite";
     static String COMMON_CID = "bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi";
-    static String TEST0_CID = "bafybeibvgyphgiv2paoizwtfxdbxevumzilvvkfjt7bdqqiet27wyy6jsi";
+    static String TEST1_CID = "bafybeifi4myu2s6rkegzeb2qk6znfg76lt4gpqe6sftozg3rjy6a5cw4qa";
     static String HELLO_WORLD = "Hello World";
     static Peer litePeer;
 
@@ -90,7 +90,6 @@ public class PeerTest {
 
         byte[] res = litePeer.getFile(COMMON_CID);
         assertEquals(HELLO_WORLD, new String(res, "UTF-8"));
-
     }
 
     @Test
@@ -103,14 +102,13 @@ public class PeerTest {
 
 
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        // TODO change this to TEST1 after max size increasted on grpc server
-        File input1 = PeerTest.getCacheFile(ctx, "TEST0.JPG");
+        File input1 = PeerTest.getCacheFile(ctx, "TEST1.JPG");
 
         byte[] fileBytes = Files.readAllBytes(input1.toPath());
         String cid = litePeer.addFile(fileBytes);
-        assertEquals(TEST0_CID, cid);
+        assertEquals(TEST1_CID, cid);
 
-        byte[] res = litePeer.getFile(TEST0_CID);
+        byte[] res = litePeer.getFile(TEST1_CID);
         assertArrayEquals(fileBytes, res);
     }
 
