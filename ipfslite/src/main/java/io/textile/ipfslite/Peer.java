@@ -1,10 +1,9 @@
 package io.textile.ipfslite;
 
-import java.util.Arrays;
+import java.io.ByteArrayOutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.*;
 
 import android.arch.lifecycle.LifecycleObserver;
 
@@ -50,7 +49,17 @@ public class Peer implements LifecycleObserver {
      */
     public Peer(String datastorePath) {
         path = datastorePath;
-        channel = ManagedChannelBuilder.forAddress("localhost", 10000).usePlaintext().build();
+        //channel = OkHttpChannelBuilder
+        //        .forAddress("localhost", 10000)
+        //        .maxInboundMessageSize(998430000)
+        //        .maxInboundMetadataSize(998430000)
+        //        .usePlaintext()
+        //        .build();
+        channel = ManagedChannelBuilder
+                .forAddress("localhost", 10000)
+                .maxInboundMessageSize(9984308)
+                .usePlaintext()
+                .build();
         blockingStub = IpfsLiteGrpc.newBlockingStub(channel);
         asyncStub = IpfsLiteGrpc.newStub(channel);
     }
@@ -84,11 +93,13 @@ public class Peer implements LifecycleObserver {
     public byte[] getFile(String cid) throws Exception {
         GetFileRequest request = FileRequest(cid);
         Iterator<GetFileResponse> response = blockingStub.getFile(request);
-        // TODO double-check that this will always be what we're looking for
-        if (response.hasNext()) {
-            return response.next().getChunk().toByteArray();
+        // TODO is there a more efficient way to do this?
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        while (response.hasNext()) {
+            byte[] bytes = response.next().getChunk().toByteArray();
+            baos.write(bytes);
         }
-        return null;
+        return baos.toByteArray();
     }
 
 

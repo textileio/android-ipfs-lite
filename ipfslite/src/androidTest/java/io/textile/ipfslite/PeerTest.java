@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
@@ -33,6 +34,7 @@ public class PeerTest {
 
     static String REPO_NAME = "ipfslite";
     static String COMMON_CID = "bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi";
+    static String TEST0_CID = "bafybeibvgyphgiv2paoizwtfxdbxevumzilvvkfjt7bdqqiet27wyy6jsi";
     static String HELLO_WORLD = "Hello World";
     static Peer litePeer;
 
@@ -89,6 +91,27 @@ public class PeerTest {
         byte[] res = litePeer.getFile(COMMON_CID);
         assertEquals(HELLO_WORLD, new String(res, "UTF-8"));
 
+    }
+
+    @Test
+    public void AddLargeFile() throws Exception {
+        if (litePeer == null) {
+            startPeer();
+        }
+
+        assertEquals(true, litePeer.started());
+
+
+        Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        // TODO change this to TEST1 after max size increasted on grpc server
+        File input1 = PeerTest.getCacheFile(ctx, "TEST0.JPG");
+
+        byte[] fileBytes = Files.readAllBytes(input1.toPath());
+        String cid = litePeer.addFile(fileBytes);
+        assertEquals(TEST0_CID, cid);
+
+        byte[] res = litePeer.getFile(TEST0_CID);
+        assertArrayEquals(fileBytes, res);
     }
 
     private static File getCacheFile(Context context, String filename) throws IOException {
