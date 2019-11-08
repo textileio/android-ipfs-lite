@@ -1,5 +1,7 @@
 package io.textile.ipfslite;
 
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.*;
@@ -79,43 +81,44 @@ public class Peer implements LifecycleObserver {
                  .build();
     }
 
-    public String getFile(String cid) throws Exception {
+    public ByteString getFile(String cid) throws Exception {
         GetFileRequest request = FileRequest(cid);
         Iterator<GetFileResponse> response = blockingStub.getFile(request);
+        // TODO double-check that this will always be what we're looking for
         if (response.hasNext()) {
-            return response.next().toString();
+            return response.next().getChunk();
         }
-
-        return response.toString();
+        return null;
     }
 
 
     static AddParams.Builder AddFileParams (ByteString data) {
         return AddParams.newBuilder()
-                .setChunker("Hello World");
+                .setChunker(data.toStringUtf8());
     }
-    static AddFileRequest FileData (ByteString data) {
+    static AddFileRequest.Builder FileData (ByteString data) {
         return AddFileRequest.newBuilder()
-//                .setAddParams(AddFileParams(data))
-                .setChunk(data)
-                .build();
+                .setAddParams(AddFileParams(data))
+                .setChunk(data);
     }
-    static AddFileRequest FileRequestHeader (ByteString data) {
+    static AddFileRequest.Builder FileRequestHeader () {
         AddParams.Builder params = AddParams.newBuilder();
         return AddFileRequest.newBuilder()
-                .setAddParams(params)
-                .build();
+                .setAddParams(params);
     }
-    public void addFile(byte[] data) throws Exception {
-        AddFileRequest requestHeader = FileRequestHeader(ByteString.copyFrom(data));
-        AddFileRequest requestData = FileData(ByteString.copyFrom(data));
+    public String addFile(byte[] data) throws Exception {
+        ByteString byteString = ByteString.copyFrom(data);
+        AddFileRequest.Builder requestHeader = FileRequestHeader();
+        AddFileRequest.Builder requestData = FileData(byteString);
 
         final CountDownLatch finishLatch = new CountDownLatch(1);
+        final AtomicReference<String> CID = new AtomicReference<>("");
         StreamObserver<AddFileResponse> responseObserver = new StreamObserver<AddFileResponse>() {
             @Override
             public void onNext(AddFileResponse value) {
-                logger.log(Level.INFO, value.toString());
-                System.out.flush();
+                String res = value.getNode().getBlock().getCid();
+                logger.log(Level.INFO, "Added " + res);
+                CID.set(res);
             }
 
             @Override
@@ -126,19 +129,24 @@ public class Peer implements LifecycleObserver {
 
             @Override
             public void onCompleted() {
-                logger.log(Level.INFO, "COMPLETE");
+                logger.log(Level.INFO, "AddFile Complete");
                 finishLatch.countDown();
             }
         };
-        logger.log(Level.INFO, "HERE WE GO");
         StreamObserver<AddFileRequest> requestObserver = asyncStub.addFile(responseObserver);
 
-        requestObserver.onNext(requestHeader);
-        requestObserver.onNext(requestData);
+        try {
+            requestObserver.onNext(requestHeader.build());
+            requestObserver.onNext(requestData.build());
+        } catch (RuntimeException e) {
+            // Cancel RPC
+            requestObserver.onError(e);
+            throw e;
+        }
+        requestObserver.onCompleted();
         // this will take as long as you give it.
         finishLatch.await(30, TimeUnit.SECONDS);
-        requestObserver.onCompleted();
-        return;
+        return CID.get();
     }
 
     public Boolean started() {

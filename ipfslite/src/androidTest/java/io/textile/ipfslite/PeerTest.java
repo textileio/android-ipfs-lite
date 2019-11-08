@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.google.protobuf.ByteString;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -30,7 +32,8 @@ import static org.junit.Assert.assertNotNull;
 public class PeerTest {
 
     static String REPO_NAME = "ipfslite";
-    static String COMMON_CID = "QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPU";
+    static String COMMON_CID = "bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi";
+    static String HELLO_WORLD = "Hello World";
     static Peer litePeer;
 
     String resetRepo() throws Exception {
@@ -67,33 +70,25 @@ public class PeerTest {
 
         assertEquals(true, litePeer.started());
 
-        String file = litePeer.getFile(COMMON_CID);
+        ByteString file = litePeer.getFile(COMMON_CID);
 
         assertNotNull(file);
     }
 
     @Test
     public void AddFile() throws Exception {
-        System.out.print("TESTTTTTING");
-        System.out.flush();
         if (litePeer == null) {
             startPeer();
         }
 
         assertEquals(true, litePeer.started());
 
-//        Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
-//        File input1 = PeerTest.getCacheFile(ctx, "TEST0.JPG");
-//        Path path = input1.toPath();
-//        byte[] fileBytes = Files.readAllBytes(path);
+        String cid = litePeer.addFile(HELLO_WORLD.getBytes());
+        assertEquals(COMMON_CID, cid);
 
-        String msg = "Hello World";
+        ByteString res = litePeer.getFile(COMMON_CID);
+        assertEquals(HELLO_WORLD, res.toStringUtf8());
 
-        System.out.print("going");
-        System.out.flush();
-        litePeer.addFile(msg.getBytes());
-
-//        assertNotNull(file);
     }
 
     private static File getCacheFile(Context context, String filename) throws IOException {
