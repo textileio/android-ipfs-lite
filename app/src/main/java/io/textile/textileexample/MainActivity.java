@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClick(View v) {
         try {
             String cid = litePeer.addFile("Hello World".getBytes());
+            System.out.println("Success: " + cid);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -46,8 +47,4 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(e.getMessage());
         }
     }
-
-//    private void destroyTextile() {
-//        Textile.instance().destroy();
-//    }
 }

@@ -100,7 +100,6 @@ public class PeerTest {
 
         assertEquals(true, litePeer.started());
 
-
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         File input1 = PeerTest.getCacheFile(ctx, "TEST1.JPG");
 
