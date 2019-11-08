@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
     private void initIPFS() {
         try {
             Context ctx = getApplicationContext();
-
             final File filesDir = ctx.getFilesDir();
 //            final String path = filesDir.getAbsolutePath();
             final String path = new File(filesDir, "ipfslite").getAbsolutePath();
