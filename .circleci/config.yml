@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   tests:
     docker:
-      - image: circleci/android:api-28-ndk
+      - image: reactnativecommunity/react-native-android:2019-5-29
     environment:
       - TERM: "dumb"
       - ADB_INSTALL_TIMEOUT: 10
