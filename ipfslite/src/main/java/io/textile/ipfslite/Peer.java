@@ -81,12 +81,12 @@ public class Peer implements LifecycleObserver {
                  .build();
     }
 
-    public ByteString getFile(String cid) throws Exception {
+    public byte[] getFile(String cid) throws Exception {
         GetFileRequest request = FileRequest(cid);
         Iterator<GetFileResponse> response = blockingStub.getFile(request);
         // TODO double-check that this will always be what we're looking for
         if (response.hasNext()) {
-            return response.next().getChunk();
+            return response.next().getChunk().toByteArray();
         }
         return null;
     }

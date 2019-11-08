@@ -70,7 +70,7 @@ public class PeerTest {
 
         assertEquals(true, litePeer.started());
 
-        ByteString file = litePeer.getFile(COMMON_CID);
+        byte[] file = litePeer.getFile(COMMON_CID);
 
         assertNotNull(file);
     }
@@ -86,8 +86,8 @@ public class PeerTest {
         String cid = litePeer.addFile(HELLO_WORLD.getBytes());
         assertEquals(COMMON_CID, cid);
 
-        ByteString res = litePeer.getFile(COMMON_CID);
-        assertEquals(HELLO_WORLD, res.toStringUtf8());
+        byte[] res = litePeer.getFile(COMMON_CID);
+        assertEquals(HELLO_WORLD, new String(res, "UTF-8"));
 
     }
 
