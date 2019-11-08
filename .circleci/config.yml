@@ -40,11 +40,6 @@ jobs:
             source ".circleci/scripts/.tests.env"
             "$ANDROID_HOME/emulator/emulator" -avd "$AVD_NAME" -no-audio -no-window
       - run:
-          name: Wait for emulator
-          command: |
-            source ".circleci/scripts/.tests.env"
-            ".circleci/scripts/wait_for_emulator.sh"
-      - run:
           name: Run Tests
           command: ./gradlew ipfslite:connectedAndroidTest
 
