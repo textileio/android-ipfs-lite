@@ -1,0 +1,27 @@
+version: 2.1
+
+jobs:
+  tests:
+    docker:
+      - image: circleci/android:api-28-ndk
+    steps:
+      - checkout
+      - restore_cache:
+          key: jars-{{ checksum "manifest.gradle" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}-{{ checksum "textile/build.gradle" }}
+      - run:
+          name: Download Dependencies
+          command: ./gradlew androidDependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: jars-{{ checksum "manifest.gradle" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}-{{ checksum "textile/build.gradle" }}
+      - run:
+          name: Run Tests
+          command: ./gradlew ipfslite:connectedAndroidTest
+
+workflows:
+  version: 2
+  android-ipfs-lite:
+    jobs:
+      - tests
+
