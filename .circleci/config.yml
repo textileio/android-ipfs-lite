@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   tests:
     docker:
-      - image: circleci/android:api-26-ndk
+      - image: circleci/android:api-28-alpha
     steps:
       - checkout
       - restore_cache:
@@ -19,14 +19,27 @@ jobs:
           name: Setup emulator
           command: sdkmanager "system-images;android-22;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-22;default;armeabi-v7a"
       - run:
-          name: Launch emulator
-          command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel on
+          name: Lists installed targets
+          command: android list target
+          environment:
+          TERM: dumb
+      - run:
+          name: Show list of system-images
+          command: sdkmanager --list --verbose | grep system-images
+      - run:
+          name: Setup Emulator
+          command: sdkmanager "system-images;android-21;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-21;default;armeabi-v7a"
+      - run:
+          name: Launch Emulator
+          command: |
+            cd ${ANDROID_HOME}/emulator;ls
+            export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib
+            emulator -avd test -no-window -noaudio -no-boot-anim -no-window -accel on
           background: true
       - run:
           name: Wait emulator
           command: |
             circle-android wait-for-boot
-            adb shell input keyevent 82
       - run:
           name: Run Tests
           command: ./gradlew ipfslite:connectedAndroidTest
