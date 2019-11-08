@@ -16,9 +16,6 @@ jobs:
             - ~/.gradle
           key: jars-{{ checksum "manifest.gradle" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}-{{ checksum "ipfslite/build.gradle" }}
       - run:
-          name: Setup emulator
-          command: sdkmanager "system-images;android-22;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-22;default;armeabi-v7a"
-      - run:
           name: Lists installed targets
           command: android list target
           environment:
@@ -28,7 +25,7 @@ jobs:
           command: sdkmanager --list --verbose | grep system-images
       - run:
           name: Setup Emulator
-          command: sdkmanager "system-images;android-21;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-21;default;armeabi-v7a"
+          command: sdkmanager "system-images;android-28;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-28;default;armeabi-v7a"
       - run:
           name: Launch Emulator
           command: |
