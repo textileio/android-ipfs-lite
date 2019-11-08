@@ -21,22 +21,23 @@ jobs:
           environment:
           TERM: dumb
       - run:
-          name: Show list of system-images
-          command: sdkmanager --list --verbose | grep system-images
-      - run:
-          name: Setup Emulator
-          command: sdkmanager "system-images;android-28;default;x86" && echo "no" | avdmanager create avd -n test -k "system-images;android-28;default;x86"
-      - run:
-          name: Launch Emulator
+          name: Create emulator
           command: |
-            cd ${ANDROID_HOME}/emulator;ls
-            export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib
-            emulator -avd test -no-window -noaudio -no-boot-anim -no-window -accel on
+            source ".circleci/scripts/.tests.env"
+            AVD_PACKAGES="system-images;android-$ANDROID_SDK_TARGET_API_LEVEL;google_apis;$AVD_ABI"
+            echo "Creating AVD with packages $AVD_PACKAGES"
+            echo no | avdmanager create avd --name "$AVD_NAME" --force --package "$AVD_PACKAGES" --tag google_apis --abi "$AVD_ABI"
+      - run:
+          name: Launch emulator
           background: true
-      - run:
-          name: Wait emulator
           command: |
-            circle-android wait-for-boot
+            source ".circleci/scripts/.tests.env"
+            "$ANDROID_HOME/emulator/emulator" -avd "$AVD_NAME" -no-audio -no-window
+      - run:
+          name: Wait for emulator
+          command: |
+            source ".circleci/scripts/.tests.env"
+            ".circleci/scripts/wait_for_emulator.sh"
       - run:
           name: Run Tests
           command: ./gradlew ipfslite:connectedAndroidTest
