@@ -27,7 +27,7 @@
         android:layout_marginRight="165dp"
         android:layout_marginBottom="173dp"
         android:onClick="onButtonClick"
-        android:text="Reset Textile"
+        android:text="Log IPFS"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

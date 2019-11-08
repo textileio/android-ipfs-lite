@@ -23,8 +23,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClick(View v) {
         try {
-            String file = litePeer.getFile("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPU");
-            System.out.println(file);
+            String cid = litePeer.addFile("Hello World".getBytes());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        try {
+            byte[] file = litePeer.getFile("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi");
+            System.out.println("Success: " + new String(file, "UTF-8"));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -34,11 +39,9 @@ public class MainActivity extends AppCompatActivity {
         try {
             Context ctx = getApplicationContext();
             final File filesDir = ctx.getFilesDir();
-//            final String path = filesDir.getAbsolutePath();
             final String path = new File(filesDir, "ipfslite").getAbsolutePath();
             litePeer = new Peer(path);
             litePeer.start();
-            System.out.println("Started ?");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

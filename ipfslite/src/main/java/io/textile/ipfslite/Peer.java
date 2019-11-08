@@ -117,19 +117,19 @@ public class Peer implements LifecycleObserver {
             @Override
             public void onNext(AddFileResponse value) {
                 String res = value.getNode().getBlock().getCid();
-                logger.log(Level.INFO, "Added " + res);
+                logger.log(Level.INFO, "AddFile: " + res);
                 CID.set(res);
             }
 
             @Override
             public void onError(Throwable t) {
-                logger.log(Level.INFO, t.getLocalizedMessage());
+                logger.log(Level.INFO, "AddFile: " + t.getLocalizedMessage());
                 finishLatch.countDown();
             }
 
             @Override
             public void onCompleted() {
-                logger.log(Level.INFO, "AddFile Complete");
+                logger.log(Level.INFO, "AddFile: Complete");
                 finishLatch.countDown();
             }
         };
