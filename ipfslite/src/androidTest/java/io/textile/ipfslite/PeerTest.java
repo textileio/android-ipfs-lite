@@ -94,7 +94,7 @@ public class PeerTest {
     }
 
     @Test
-    public void AddLargeFile() throws Exception {
+    public void AddThenGetImage() throws Exception {
         if (litePeer == null) {
             startPeer();
         }
