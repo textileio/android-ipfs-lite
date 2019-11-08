@@ -1,0 +1,4 @@
+action "Run UI Tests" {
+  needs = ["Build"]
+  uses = "vgaidarji/android-github-actions/emulator@v1.0.0"
+}
