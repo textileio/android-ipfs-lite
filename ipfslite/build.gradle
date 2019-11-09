@@ -56,9 +56,13 @@ dependencies {
     implementation "io.grpc:grpc-core:$gRPCVersion"
     implementation "io.grpc:grpc-okhttp:$gRPCVersion"
     testImplementation "io.grpc:grpc-testing:$gRPCVersion"
-    implementation "io.grpc:grpc-protobuf:$gRPCVersion"
     implementation "io.grpc:grpc-stub:$gRPCVersion"
-    implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
+
+    // Lite, use below for Full
+    implementation "io.grpc:grpc-protobuf-lite:$gRPCVersion"
+    // Full proto libs
+    // implementation "io.grpc:grpc-protobuf:$gRPCVersion"
+//     implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
 
     // Support
     implementation "com.android.support:appcompat-v7:$appcompatVersion"
@@ -135,6 +139,8 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
 }
 
+// Build docs
+/**
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -154,6 +160,11 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 
 artifacts {
     archives javadocJar
+    archives sourcesJar
+}
+ */
+
+artifacts {
     archives sourcesJar
 }
 
@@ -187,11 +198,18 @@ protobuf {
         grpc {
             artifact = "io.grpc:protoc-gen-grpc-java:$gRPCVersion"
         }
+        javalite {
+            artifact = "com.google.protobuf:protoc-gen-javalite:3.0.0"
+        }
     }
     generateProtoTasks {
         all()*.plugins {
-            java {}
-            grpc {}
+            javalite {} // replace with java {} for full
+            grpc {
+                // remove for full
+                option 'lite'
+            }
         }
     }
+    generatedFilesBaseDir = "$projectDir/build/generated"
 }
