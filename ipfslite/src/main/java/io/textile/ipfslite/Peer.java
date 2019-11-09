@@ -2,6 +2,7 @@ package io.textile.ipfslite;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -116,6 +117,8 @@ public class Peer implements LifecycleObserver {
         return baos.toByteArray();
     }
 
+
+
     static AddParams.Builder AddFileParams (ByteString data) {
         return AddParams.newBuilder()
                 .setChunker(data.toStringUtf8());
@@ -188,6 +191,35 @@ public class Peer implements LifecycleObserver {
         // this will take as long as you give it.
         finishLatch.await(30, TimeUnit.SECONDS);
         return CID.get();
+    }
+
+    public interface FileHandler {
+        void onNext(final byte[] data);
+        void onComplete();
+        void onError(final Throwable t);
+    }
+    public void getFileAsync(String cid, final FileHandler handler) {
+
+        asyncStub.getFile(FileRequest(cid), new StreamObserver<GetFileResponse>() {
+            @Override
+            public void onNext(GetFileResponse value) {
+                byte[] data = value.getChunk().toByteArray();
+                logger.log(Level.INFO, "GetFile data: " + data.length);
+                handler.onNext(data);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                logger.log(Level.INFO, "GetFile onError: " + t.getLocalizedMessage());
+                handler.onError(t);
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.log(Level.INFO, "GetFile: Complete");
+                handler.onComplete();
+            }
+        });
     }
 
     public Boolean started() {

@@ -15,7 +15,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
@@ -86,12 +90,40 @@ public class PeerTest {
     }
 
     @Test
+    public void GetFileAsync() throws Exception {
+        if (litePeer == null) {
+            startPeer();
+            assertEquals(true, litePeer.started());
+        }
+        AtomicBoolean ready = new AtomicBoolean();
+        ready.getAndSet(false);
+        litePeer.getFileAsync(
+                HELLO_WORLD_CID, new Peer.FileHandler() {
+                    @Override
+                    public void onNext(byte[] data) {
+                        String value = data.toString();
+                        assertEquals(HELLO_WORLD, value);
+                        ready.getAndSet(true);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        assertNull(t);
+                        ready.getAndSet(true);
+                    }
+
+                    @Override
+                    public void onComplete() {}
+                });
+        await().atMost(30, TimeUnit.SECONDS).untilTrue(ready);
+    }
+
+    @Test
     public void AddThenGetImage() throws Exception {
         if (litePeer == null) {
             startPeer();
             assertEquals(true, litePeer.started());
         }
-
 
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         File input1 = PeerTest.getCacheFile(ctx, "TEST1.JPG");
