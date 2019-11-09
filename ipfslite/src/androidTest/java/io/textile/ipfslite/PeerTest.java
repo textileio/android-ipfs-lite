@@ -77,7 +77,6 @@ public class PeerTest {
             startPeer();
             assertEquals(true, litePeer.started());
         }
-        Thread.sleep(3000);
         String cid = litePeer.addFile(HELLO_WORLD.getBytes());
         assertEquals(HELLO_WORLD_CID, cid);
 
