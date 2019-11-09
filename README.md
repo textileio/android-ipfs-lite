@@ -23,7 +23,7 @@ IPFS Lite runs the minimal setup required to get and put IPLD DAGs on the IPFS n
     - [Initialize and start a Peer](#initialize-and-start-a-peer)
     - [Add data](#add-data)
     - [Add a file](#add-a-file)
-    - [Fetch a CID](#fetch-a-cid)
+    - [Fetch a file by CID](#fetch-a-file-by-cid)
   - [Maintainers](#maintainers)
   - [Contributing](#contributing)
   - [License](#license)
@@ -96,7 +96,7 @@ dependencies {
   String cid = litePeer.addFile(bytes);
 ```
 
-### Fetch a CID
+### Fetch a file by CID
 
 ```java
   byte[] data = litePeer.getFile("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi);
