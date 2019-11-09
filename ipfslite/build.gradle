@@ -54,19 +54,13 @@ dependencies {
     api "io.textile:grpc-ipfs-lite:$gRPCIpfsVersion"
 
     implementation "io.grpc:grpc-core:$gRPCVersion"
-
     implementation "io.grpc:grpc-okhttp:$gRPCVersion"
-//    implementation "io.grpc:grpc-netty-shaded:$gRPCVersion"
     testImplementation "io.grpc:grpc-testing:$gRPCVersion"
-
     implementation "io.grpc:grpc-protobuf:$gRPCVersion"
     implementation "io.grpc:grpc-stub:$gRPCVersion"
     implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
-    // Textile
-//    implementation project(':Peer-lite')
 
     // Support
-    // implementation "androidx.appcompat:appcompat:$androidxAppcompatVersion"
     implementation "com.android.support:appcompat-v7:$appcompatVersion"
     implementation "com.android.support:support-v4:$appcompatVersion"
 

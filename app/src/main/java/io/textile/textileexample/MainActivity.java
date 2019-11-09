@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
             Context ctx = getApplicationContext();
             final File filesDir = ctx.getFilesDir();
             final String path = new File(filesDir, "ipfslite").getAbsolutePath();
-            litePeer = new Peer(path);
+            litePeer = new Peer(path, BuildConfig.DEBUG);
             litePeer.start();
         } catch (Exception e) {
             System.out.println(e.getMessage());

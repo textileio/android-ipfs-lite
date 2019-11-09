@@ -4,8 +4,6 @@ option java_multiple_files = true;
 option java_package = "io.textile.grpc_ipfs_lite";
 option java_outer_classname = "IpfsLiteProto";
 
-// package grpc;
-
 // Model messages
 
 message AddParams {
@@ -142,7 +140,7 @@ message DeleteBlockRequest {
 }
 
 message DeleteBlockResponse {
-    
+
 }
 
 message HasBlockRequest {
@@ -174,7 +172,7 @@ message PutBlockRequest {
 }
 
 message PutBlockResponse {
-    
+
 }
 
 message PutBlocksRequest {
@@ -182,7 +180,7 @@ message PutBlocksRequest {
 }
 
 message PutBlocksResponse {
-    
+
 }
 
 message AllKeysRequest {

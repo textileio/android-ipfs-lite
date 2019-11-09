@@ -18,11 +18,20 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 // This is the gRPC IPFS Lite gomobile framework output
+import io.grpc.okhttp.OkHttpChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import mobile.Mobile;
 
 // This is the proto generated services and methods
 import io.textile.grpc_ipfs_lite.*;
+
+class PeerException extends Exception
+{
+    public PeerException(String message)
+    {
+        super(message);
+    }
+}
 
 /**
  * Provides top level access to the Textile API
@@ -30,39 +39,35 @@ import io.textile.grpc_ipfs_lite.*;
 public class Peer implements LifecycleObserver {
 
     private static final String TAG = "Peer";
-
-    private final ManagedChannel channel;
-    private final IpfsLiteGrpc.IpfsLiteBlockingStub blockingStub;
-    private final IpfsLiteGrpc.IpfsLiteStub asyncStub;
-
     private final static Logger logger =
             Logger.getLogger(TAG);
+
+    private static Boolean mode;
+    public static String path;
+    private static long port;
+
+    private static ManagedChannel channel;
+    private static IpfsLiteGrpc.IpfsLiteBlockingStub blockingStub;
+    private static IpfsLiteGrpc.IpfsLiteStub asyncStub;
 
     enum NodeState {
         Start, Stop
     }
 
     public static NodeState state = NodeState.Stop;
-    public static String path;
 
     /**
      * init the gRPC IPFS Lite server instance with the provided repo path
      */
-    public Peer(String datastorePath) {
+    public Peer(String datastorePath, Boolean debug) {
         path = datastorePath;
-        //channel = OkHttpChannelBuilder
-        //        .forAddress("localhost", 10000)
-        //        .maxInboundMessageSize(998430000)
-        //        .maxInboundMetadataSize(998430000)
-        //        .usePlaintext()
-        //        .build();
-        channel = ManagedChannelBuilder
-                .forAddress("localhost", 10000)
-                .maxInboundMessageSize(9984308)
-                .usePlaintext()
-                .build();
-        blockingStub = IpfsLiteGrpc.newBlockingStub(channel);
-        asyncStub = IpfsLiteGrpc.newStub(channel);
+        mode = debug;
+    }
+
+    void ready() throws PeerException {
+        if (!started()) {
+            throw new PeerException("Peer not started");
+        }
     }
 
     /**
@@ -73,7 +78,15 @@ public class Peer implements LifecycleObserver {
         if (state == NodeState.Start) {
             return;
         }
-        Mobile.start(path);
+        port = Mobile.start(path, mode);
+
+        channel = ManagedChannelBuilder
+                .forAddress("localhost", Math.toIntExact(port))
+                .usePlaintext()
+                .build();
+        blockingStub = IpfsLiteGrpc.newBlockingStub(channel);
+        asyncStub = IpfsLiteGrpc.newStub(channel);
+
         state = NodeState.Start;
     }
 
@@ -92,6 +105,7 @@ public class Peer implements LifecycleObserver {
     }
 
     public byte[] getFile(String cid) throws Exception {
+        ready();
         GetFileRequest request = FileRequest(cid);
         Iterator<GetFileResponse> response = blockingStub.getFile(request);
         // TODO is there a more efficient way to do this?
@@ -102,7 +116,6 @@ public class Peer implements LifecycleObserver {
         }
         return baos.toByteArray();
     }
-
 
     static AddParams.Builder AddFileParams (ByteString data) {
         return AddParams.newBuilder()
@@ -119,19 +132,20 @@ public class Peer implements LifecycleObserver {
                 .setAddParams(params);
     }
     public String addFile(byte[] data) throws Exception {
+        ready();
         final CountDownLatch finishLatch = new CountDownLatch(1);
         final AtomicReference<String> CID = new AtomicReference<>("");
         StreamObserver<AddFileResponse> responseObserver = new StreamObserver<AddFileResponse>() {
             @Override
             public void onNext(AddFileResponse value) {
                 String res = value.getNode().getBlock().getCid();
-                logger.log(Level.INFO, "AddFile: " + res);
+                logger.log(Level.INFO, "AddFile onNext: " + res);
                 CID.set(res);
             }
 
             @Override
             public void onError(Throwable t) {
-                logger.log(Level.INFO, "AddFile: " + t.getLocalizedMessage());
+                logger.log(Level.INFO, "AddFile onError: " + t.getLocalizedMessage());
                 finishLatch.countDown();
             }
 
@@ -167,12 +181,7 @@ public class Peer implements LifecycleObserver {
             range = Arrays.copyOfRange(data, (blockCount - 1) * blockSize, end);
             AddFileRequest.Builder requestData = FileData(ByteString.copyFrom(range));
             requestObserver.onNext(requestData.build());
-
-//            ByteString byteString = ByteString.copyFrom(data);
-//            AddFileRequest.Builder requestData = FileData(ByteString.copyFrom(data));
-//            requestObserver.onNext(requestData.build());
         } catch (RuntimeException e) {
-            // Cancel RPC
             requestObserver.onError(e);
             throw e;
         }
@@ -185,20 +194,4 @@ public class Peer implements LifecycleObserver {
     public Boolean started() {
         return state == NodeState.Start;
     }
-
-
-//    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-//    void onForeground() {
-//        try {
-//            start();
-//        } catch (Exception e) {
-//            // log error maybe
-//        }
-//    }
-//
-//    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-//    void onBackground() {
-////         stop();
-//        // Test for now without stopping.
-//    }
 }

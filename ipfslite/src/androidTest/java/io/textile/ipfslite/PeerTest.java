@@ -4,8 +4,6 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.google.protobuf.ByteString;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -17,12 +15,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -33,28 +28,28 @@ import static org.junit.Assert.assertNotNull;
 public class PeerTest {
 
     static String REPO_NAME = "ipfslite";
-    static String COMMON_CID = "bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi";
+    static String COMMON_CID = "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u";
     static String TEST1_CID = "bafybeifi4myu2s6rkegzeb2qk6znfg76lt4gpqe6sftozg3rjy6a5cw4qa";
+    static String HELLO_WORLD_CID = "bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi";
     static String HELLO_WORLD = "Hello World";
     static Peer litePeer;
 
-    String resetRepo() throws Exception {
+    String createRepo(Boolean reset) throws Exception {
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         final File filesDir = ctx.getFilesDir();
         final String path = new File(filesDir, REPO_NAME).getAbsolutePath();
         // Wipe repo
         File repo = new File(path);
-        if (repo.exists()) {
+        if (repo.exists() && reset == true) {
             FileUtils.deleteDirectory(repo);
         }
         return path;
     }
 
     void startPeer() throws Exception {
-        // Initialize
-        litePeer = new Peer(resetRepo());
-        // Start
+        // Initialize & start
+        litePeer = new Peer(createRepo(true), BuildConfig.DEBUG);
         litePeer.start();
     }
 
@@ -68,9 +63,8 @@ public class PeerTest {
     public void GetCID() throws Exception {
         if (litePeer == null) {
             startPeer();
+            assertEquals(true, litePeer.started());
         }
-
-        assertEquals(true, litePeer.started());
 
         byte[] file = litePeer.getFile(COMMON_CID);
 
@@ -81,14 +75,13 @@ public class PeerTest {
     public void AddFile() throws Exception {
         if (litePeer == null) {
             startPeer();
+            assertEquals(true, litePeer.started());
         }
-
-        assertEquals(true, litePeer.started());
-
+        Thread.sleep(3000);
         String cid = litePeer.addFile(HELLO_WORLD.getBytes());
-        assertEquals(COMMON_CID, cid);
+        assertEquals(HELLO_WORLD_CID, cid);
 
-        byte[] res = litePeer.getFile(COMMON_CID);
+        byte[] res = litePeer.getFile(HELLO_WORLD_CID);
         assertEquals(HELLO_WORLD, new String(res, "UTF-8"));
     }
 
@@ -96,9 +89,9 @@ public class PeerTest {
     public void AddThenGetImage() throws Exception {
         if (litePeer == null) {
             startPeer();
+            assertEquals(true, litePeer.started());
         }
 
-        assertEquals(true, litePeer.started());
 
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         File input1 = PeerTest.getCacheFile(ctx, "TEST1.JPG");
