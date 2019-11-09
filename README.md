@@ -38,6 +38,7 @@ IPFS Lite runs the minimal setup required to provide a DAG service. It is a port
 - [ ] Stop IPFS Lite
 - [x] `getCID(String cid)` Get file by Content Address.
 - [x] `addFile(byte[] data)` Add file to IPFS.
+- [ ] Get IPLD node.
 - [ ] Add IPLD node.
 
 ## Install
