@@ -47,7 +47,6 @@ jobs:
           command: |
             ./gradlew ipfslite:bintrayUpload
 workflows:
-  version: 2
   android-ipfs-lite:
     jobs:
       - build
