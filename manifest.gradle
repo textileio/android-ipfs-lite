@@ -1,6 +1,6 @@
 ext {
     bintrayRepo = 'maven'
-    bintrayName = 'ipfslite'
+    bintrayName = 'ipfs-lite'
 
     publishedGroupId = 'io.textile'
     libraryName = 'ipfslite'
