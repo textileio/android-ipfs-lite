@@ -23,13 +23,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClick(View v) {
         try {
-            String cid = litePeer.addFile("Hello World".getBytes());
+            String cid = litePeer.addFileSync("Hello World".getBytes());
             System.out.println("Success: " + cid);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
         try {
-            byte[] file = litePeer.getFile("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi");
+            byte[] file = litePeer.getFileSync("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi");
             System.out.println("Success: " + new String(file, "UTF-8"));
         } catch (Exception e) {
             System.out.println(e.getMessage());

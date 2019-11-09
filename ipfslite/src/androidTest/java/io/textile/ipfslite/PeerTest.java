@@ -10,13 +10,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertNull;
@@ -30,6 +35,10 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PeerTest {
+
+
+    private final static Logger logger =
+            Logger.getLogger("TEST");
 
     static String COMMON_CID = "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u";
     static String HELLO_WORLD_CID = "bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi";
@@ -65,15 +74,80 @@ public class PeerTest {
     }
 
     @Test
-    public void GetCID() throws Exception {
+    public void GetFileSync() throws Exception {
         if (litePeer == null) {
             startPeer();
             assertEquals(true, litePeer.started());
         }
 
-        byte[] file = litePeer.getFile(COMMON_CID);
+        byte[] file = litePeer.getFileSync(COMMON_CID);
 
         assertNotNull(file);
+    }
+    @Test
+    public void GetFile() throws Exception {
+        if (litePeer == null) {
+            startPeer();
+            assertEquals(true, litePeer.started());
+        }
+
+        // Make the CID locally available
+        litePeer.addFileSync(HELLO_WORLD.getBytes());
+
+        final CountDownLatch finishLatch = new CountDownLatch(1);
+
+        // byte array to build
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        // Async call
+        litePeer.getFile(
+                HELLO_WORLD_CID, new Peer.GetFileHandler() {
+                    @Override
+                    public void onNext(byte[] data) {
+                        try {
+                            logger.log(Level.INFO, "" + data.length);
+                            output.write(data);
+                        } catch (Throwable t) {
+                            assertNull(t);
+                            finishLatch.countDown();
+                        }
+
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        assertNull(t);
+                        finishLatch.countDown();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        byte[] result = output.toByteArray();
+                        try {
+                            String resultString = new String(result, "UTF-8");
+                            assertEquals(HELLO_WORLD, resultString);
+                        } catch (Throwable t) {
+                            assertNull(t);
+                        }
+                        finishLatch.countDown();
+                    }
+                });
+        // Await async call
+        finishLatch.await();
+    }
+
+
+    @Test
+    public void AddFileSync() throws Exception {
+        if (litePeer == null) {
+            startPeer();
+            assertEquals(true, litePeer.started());
+        }
+        String cid = litePeer.addFileSync(HELLO_WORLD.getBytes());
+        assertEquals(HELLO_WORLD_CID, cid);
+
+        byte[] res = litePeer.getFileSync(HELLO_WORLD_CID);
+        assertEquals(HELLO_WORLD, new String(res, "UTF-8"));
     }
 
     @Test
@@ -82,41 +156,38 @@ public class PeerTest {
             startPeer();
             assertEquals(true, litePeer.started());
         }
-        String cid = litePeer.addFile(HELLO_WORLD.getBytes());
-        assertEquals(HELLO_WORLD_CID, cid);
 
-        byte[] res = litePeer.getFile(HELLO_WORLD_CID);
-        assertEquals(HELLO_WORLD, new String(res, "UTF-8"));
-    }
+        // Make the CID locally available
+        litePeer.addFileSync(HELLO_WORLD.getBytes());
 
-    @Test
-    public void GetFileAsync() throws Exception {
-        if (litePeer == null) {
-            startPeer();
-            assertEquals(true, litePeer.started());
-        }
         AtomicBoolean ready = new AtomicBoolean();
-        ready.getAndSet(false);
-        litePeer.getFileAsync(
-                HELLO_WORLD_CID, new Peer.FileHandler() {
-                    @Override
-                    public void onNext(byte[] data) {
-                        String value = data.toString();
-                        assertEquals(HELLO_WORLD, value);
-                        ready.getAndSet(true);
-                    }
+        final AtomicReference<String> CID = new AtomicReference<>("");
 
-                    @Override
-                    public void onError(Throwable t) {
-                        assertNull(t);
-                        ready.getAndSet(true);
-                    }
+        // Async call
+        litePeer.addFile(
+            HELLO_WORLD.getBytes(), new Peer.AddFileHandler() {
+                @Override
+                public void onNext(String cid) {
+                    CID.set(cid);
+                }
 
-                    @Override
-                    public void onComplete() {}
-                });
+                @Override
+                public void onError(Throwable t) {
+                    assertNull(t);
+                    ready.getAndSet(true);
+                }
+
+                @Override
+                public void onComplete() {
+                    String result = CID.get();
+                    assertEquals(HELLO_WORLD_CID, result);
+                    ready.getAndSet(true);
+                }
+            });
+        // Await async call
         await().atMost(30, TimeUnit.SECONDS).untilTrue(ready);
     }
+
 
     @Test
     public void AddThenGetImage() throws Exception {
@@ -129,10 +200,10 @@ public class PeerTest {
         File input1 = PeerTest.getCacheFile(ctx, "TEST1.JPG");
 
         byte[] fileBytes = Files.readAllBytes(input1.toPath());
-        String cid = litePeer.addFile(fileBytes);
+        String cid = litePeer.addFileSync(fileBytes);
         assertEquals(TEST1_CID, cid);
 
-        byte[] res = litePeer.getFile(TEST1_CID);
+        byte[] res = litePeer.getFileSync(TEST1_CID);
         assertArrayEquals(fileBytes, res);
     }
 

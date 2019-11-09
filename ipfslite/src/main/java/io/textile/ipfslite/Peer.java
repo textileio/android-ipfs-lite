@@ -2,7 +2,6 @@ package io.textile.ipfslite;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -104,21 +103,6 @@ public class Peer implements LifecycleObserver {
                  .build();
     }
 
-    public byte[] getFile(String cid) throws Exception {
-        ready();
-        GetFileRequest request = FileRequest(cid);
-        Iterator<GetFileResponse> response = blockingStub.getFile(request);
-        // TODO is there a more efficient way to do this?
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        while (response.hasNext()) {
-            byte[] bytes = response.next().getChunk().toByteArray();
-            baos.write(bytes);
-        }
-        return baos.toByteArray();
-    }
-
-
-
     static AddParams.Builder AddFileParams (ByteString data) {
         return AddParams.newBuilder()
                 .setChunker(data.toStringUtf8());
@@ -133,7 +117,79 @@ public class Peer implements LifecycleObserver {
         return AddFileRequest.newBuilder()
                 .setAddParams(params);
     }
-    public String addFile(byte[] data) throws Exception {
+
+
+    void streamDataChunks(byte[] data, StreamObserver<AddFileRequest> requestStream) {
+        try {
+            // Start stream
+            AddFileRequest.Builder requestHeader = FileRequestHeader();
+            requestStream.onNext(requestHeader.build());
+            // Send file segments of 1024b
+            int blockSize = 1024;
+            int blockCount = (data.length + blockSize - 1) / blockSize;
+
+            byte[] range;
+            for (int i = 1; i < blockCount; i++) {
+                int idx = (i - 1) * blockSize;
+                range = Arrays.copyOfRange(data, idx, idx + blockSize);
+                AddFileRequest.Builder requestData = FileData(ByteString.copyFrom(range));
+                requestStream.onNext(requestData.build());
+            }
+            int end = -1;
+            if (data.length % blockSize == 0) {
+                end = data.length;
+            } else {
+                end = data.length % blockSize + blockSize * (blockCount - 1);
+            }
+            range = Arrays.copyOfRange(data, (blockCount - 1) * blockSize, end);
+            AddFileRequest.Builder requestData = FileData(ByteString.copyFrom(range));
+            requestStream.onNext(requestData.build());
+        } catch (RuntimeException e) {
+            requestStream.onError(e);
+            throw e;
+        }
+        requestStream.onCompleted();
+    }
+
+    public interface AddFileHandler {
+        void onNext(final String cid);
+        void onComplete();
+        void onError(final Throwable t);
+    }
+
+    public void addFile(byte[] data, final AddFileHandler handler) {
+
+        StreamObserver<AddFileRequest> addFileRequest = asyncStub.addFile(new StreamObserver<AddFileResponse>() {
+            @Override
+            public void onNext(AddFileResponse value) {
+                try {
+                    String cid = value.getNode().getBlock().getCid();
+                    handler.onNext(cid);
+                } catch (Throwable t) {
+                    handler.onError(t);
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                logger.log(Level.INFO, "GetFileError: " + t.getLocalizedMessage());
+                handler.onError(t);
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.log(Level.INFO, "GetFileComplete");
+                handler.onComplete();
+            }
+        });
+
+        // Stream the file over a background thread
+        new Thread(() -> {
+            streamDataChunks(data, addFileRequest);
+        }).start();
+    }
+
+    public String addFileSync(byte[] data) throws Exception {
         ready();
         final CountDownLatch finishLatch = new CountDownLatch(1);
         final AtomicReference<String> CID = new AtomicReference<>("");
@@ -159,67 +215,50 @@ public class Peer implements LifecycleObserver {
         };
         StreamObserver<AddFileRequest> requestObserver = asyncStub.addFile(responseObserver);
 
-        try {
-            // Start stream
-            AddFileRequest.Builder requestHeader = FileRequestHeader();
-            requestObserver.onNext(requestHeader.build());
-            // Send file segments of 1024b
-            int blockSize = 1024;
-            int blockCount = (data.length + blockSize - 1) / blockSize;
+        streamDataChunks(data, requestObserver);
 
-            byte[] range = null;
-            for (int i = 1; i < blockCount; i++) {
-                int idx = (i - 1) * blockSize;
-                range = Arrays.copyOfRange(data, idx, idx + blockSize);
-                AddFileRequest.Builder requestData = FileData(ByteString.copyFrom(range));
-                requestObserver.onNext(requestData.build());
-            }
-            int end = -1;
-            if (data.length % blockSize == 0) {
-                end = data.length;
-            } else {
-                end = data.length % blockSize + blockSize * (blockCount - 1);
-            }
-            range = Arrays.copyOfRange(data, (blockCount - 1) * blockSize, end);
-            AddFileRequest.Builder requestData = FileData(ByteString.copyFrom(range));
-            requestObserver.onNext(requestData.build());
-        } catch (RuntimeException e) {
-            requestObserver.onError(e);
-            throw e;
-        }
-        requestObserver.onCompleted();
         // this will take as long as you give it.
         finishLatch.await(30, TimeUnit.SECONDS);
         return CID.get();
     }
 
-    public interface FileHandler {
+    public interface GetFileHandler {
         void onNext(final byte[] data);
         void onComplete();
         void onError(final Throwable t);
     }
-    public void getFileAsync(String cid, final FileHandler handler) {
-
+    public void getFile(String cid, final GetFileHandler handler) {
         asyncStub.getFile(FileRequest(cid), new StreamObserver<GetFileResponse>() {
             @Override
             public void onNext(GetFileResponse value) {
-                byte[] data = value.getChunk().toByteArray();
-                logger.log(Level.INFO, "GetFile data: " + data.length);
-                handler.onNext(data);
+                handler.onNext(value.getChunk().toByteArray());
             }
 
             @Override
             public void onError(Throwable t) {
-                logger.log(Level.INFO, "GetFile onError: " + t.getLocalizedMessage());
+                logger.log(Level.INFO, "GetFileError: " + t.getLocalizedMessage());
                 handler.onError(t);
             }
 
             @Override
             public void onCompleted() {
-                logger.log(Level.INFO, "GetFile: Complete");
+                logger.log(Level.INFO, "GetFileComplete");
                 handler.onComplete();
             }
         });
+    }
+
+    public byte[] getFileSync(String cid) throws Exception {
+        ready();
+        GetFileRequest request = FileRequest(cid);
+        Iterator<GetFileResponse> response = blockingStub.getFile(request);
+        // TODO is there a more efficient way to do this?
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        while (response.hasNext()) {
+            byte[] bytes = response.next().getChunk().toByteArray();
+            baos.write(bytes);
+        }
+        return baos.toByteArray();
     }
 
     public Boolean started() {
