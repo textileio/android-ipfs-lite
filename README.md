@@ -36,8 +36,10 @@ IPFS Lite runs the minimal setup required to provide a DAG service. It is a port
 
 - [x] Start IPFS Lite
 - [ ] Stop IPFS Lite
-- [x] `getCID(String cid)` Get file by Content Address.
+- [x] `getFile(String cid)` Get file by Content Address.
+- [x] `getFileSync(String cid)` Synchronously get file by Content Address.
 - [x] `addFile(byte[] data)` Add file to IPFS.
+- [x] `addFileSync(byte[] data)` Synchronously Add file to IPFS.
 - [ ] Get IPLD node.
 - [ ] Add IPLD node.
 
@@ -85,7 +87,7 @@ dependencies {
 
 ```java
   String message = "Hello World";
-  String cid = litePeer.addFile(message.getBytes());
+  String cid = litePeer.addFileSync(message.getBytes());
 ```
 
 ### Add a file
@@ -93,13 +95,18 @@ dependencies {
 ```java
   File file = openFile("secret_plans");
   byte[] bytes = Files.readAllBytes(file.toPath());
-  String cid = litePeer.addFile(bytes);
+  String cid = litePeer.addFileSync(bytes);
+
+  // OR Asynchronously
+  litePeer.addFile(bytes, resultHandler);
 ```
 
 ### Fetch a file by CID
 
 ```java
-  byte[] data = litePeer.getFile("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi);
+  byte[] data = litePeer.getFileSync("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi");
+  // OR Asynchronously
+  litePeer.getFile("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi", resultHandler);
 ```
 
 ## Maintainers
