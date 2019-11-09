@@ -27,11 +27,12 @@ import static org.junit.Assert.assertNotNull;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PeerTest {
 
-    static String REPO_NAME = "ipfslite";
     static String COMMON_CID = "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u";
-    static String TEST1_CID = "bafybeifi4myu2s6rkegzeb2qk6znfg76lt4gpqe6sftozg3rjy6a5cw4qa";
     static String HELLO_WORLD_CID = "bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi";
     static String HELLO_WORLD = "Hello World";
+    static String TEST1_CID = "bafybeifi4myu2s6rkegzeb2qk6znfg76lt4gpqe6sftozg3rjy6a5cw4qa";
+    static String REPO_NAME = "ipfslite";
+
     static Peer litePeer;
 
     String createRepo(Boolean reset) throws Exception {
