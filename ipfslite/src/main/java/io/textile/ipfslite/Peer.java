@@ -306,14 +306,13 @@ public class Peer implements LifecycleObserver {
         });
     }
 
-
     public interface ResolveNodeHandler {
         void onNext(final Node node);
         void onComplete();
         void onError(final Throwable t);
     }
-    public void getNode(String cid, final ResolveNodeHandler handler) {
 
+    public void getNode(String cid, final ResolveNodeHandler handler) {
         GetNodeRequest.Builder request = GetNodeRequest
                 .newBuilder()
                 .setCid(cid);
@@ -334,6 +333,36 @@ public class Peer implements LifecycleObserver {
             @Override
             public void onCompleted() {
                 logger.log(Level.INFO, "GetNodeComplete");
+                handler.onComplete();
+            }
+        });
+    }
+
+    public interface RemoveNodeHandler {
+        void onNext(String cid);
+        void onComplete();
+        void onError(final Throwable t);
+    }
+    public void removeNode(String cid, final RemoveNodeHandler handler) {
+        RemoveNodeRequest.Builder request = RemoveNodeRequest
+                .newBuilder()
+                .setCid(cid);
+
+        asyncStub.removeNode(request.build(), new StreamObserver<RemoveNodeResponse>() {
+            @Override
+            public void onNext(RemoveNodeResponse value) {
+                handler.onNext(value.toString());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                logger.log(Level.INFO, "RemoveNodeError: " + t.getLocalizedMessage());
+                handler.onError(t);
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.log(Level.INFO, "RemoveNodeComplete");
                 handler.onComplete();
             }
         });
