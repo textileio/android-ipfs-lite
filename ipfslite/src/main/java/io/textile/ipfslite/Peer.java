@@ -2,6 +2,7 @@ package io.textile.ipfslite;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -118,7 +119,6 @@ public class Peer implements LifecycleObserver {
                 .setAddParams(params);
     }
 
-
     void streamDataChunks(byte[] data, StreamObserver<AddFileRequest> requestStream) {
         try {
             // Start stream
@@ -213,9 +213,12 @@ public class Peer implements LifecycleObserver {
                 finishLatch.countDown();
             }
         };
-        StreamObserver<AddFileRequest> requestObserver = asyncStub.addFile(responseObserver);
+        StreamObserver<AddFileRequest> addFileRequest = asyncStub.addFile(responseObserver);
 
-        streamDataChunks(data, requestObserver);
+        // Stream the file over a background thread
+        new Thread(() -> {
+            streamDataChunks(data, addFileRequest);
+        }).start();
 
         // this will take as long as you give it.
         finishLatch.await(30, TimeUnit.SECONDS);
@@ -259,6 +262,81 @@ public class Peer implements LifecycleObserver {
             baos.write(bytes);
         }
         return baos.toByteArray();
+    }
+
+    public interface ResolveLinkHandler {
+        void onNext(final String cid);
+        void onComplete();
+        void onError(final Throwable t);
+    }
+
+    public void resolveLink(String link, final ResolveLinkHandler handler) {
+        String[] parts = link.split("/");
+        if (parts.length == 0) {
+            handler.onComplete();
+        }
+
+        ResolveLinkRequest.Builder request = ResolveLinkRequest
+                .newBuilder()
+                .setNodeCid(parts[0]);
+
+
+        String linkPath = link.replace(parts[0] + "/", "");
+        if (linkPath != "") {
+            request.addPath(linkPath);
+        }
+
+        asyncStub.resolveLink(request.build(), new StreamObserver<ResolveLinkResponse>() {
+            @Override
+            public void onNext(ResolveLinkResponse value) {
+                handler.onNext(value.getLink().getCid());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                logger.log(Level.INFO, "ResolveLinkResponseError: " + t.getLocalizedMessage());
+                handler.onError(t);
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.log(Level.INFO, "ResolveLinkResponseComplete");
+                handler.onComplete();
+            }
+        });
+    }
+
+
+    public interface ResolveNodeHandler {
+        void onNext(final Node node);
+        void onComplete();
+        void onError(final Throwable t);
+    }
+    public void getNode(String cid, final ResolveNodeHandler handler) {
+
+        GetNodeRequest.Builder request = GetNodeRequest
+                .newBuilder()
+                .setCid(cid);
+
+        asyncStub.getNode(request.build(), new StreamObserver<GetNodeResponse>() {
+            @Override
+            public void onNext(GetNodeResponse value) {
+                Node node = value.getNode();
+                handler.onNext(node);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                logger.log(Level.INFO, "GetNodeError: " + t.getLocalizedMessage());
+                handler.onError(t);
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.log(Level.INFO, "GetNodeComplete");
+                handler.onComplete();
+            }
+        });
     }
 
     public Boolean started() {
