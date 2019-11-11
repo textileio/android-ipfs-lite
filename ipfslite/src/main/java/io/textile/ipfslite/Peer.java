@@ -263,7 +263,7 @@ public class Peer implements LifecycleObserver {
         }
         return baos.toByteArray();
     }
-    
+
     public interface ResolveLinkHandler {
         void onNext(final String cid);
         void onComplete();

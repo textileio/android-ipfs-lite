@@ -137,7 +137,6 @@ public class PeerTest {
         finishLatch.await(30, TimeUnit.SECONDS);
     }
 
-    // TODO: Add to test suite after addNode implemented
     @Test
     public void ResolveLink() throws Exception {
         if (litePeer == null) {
