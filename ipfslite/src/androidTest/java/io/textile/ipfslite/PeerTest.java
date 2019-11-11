@@ -16,12 +16,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.textile.grpc_ipfs_lite.Link;
+import io.textile.grpc_ipfs_lite.Node;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertNull;
@@ -35,7 +39,6 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PeerTest {
-
 
     private final static Logger logger =
             Logger.getLogger("TEST");
@@ -77,7 +80,6 @@ public class PeerTest {
     public void GetFileSync() throws Exception {
         if (litePeer == null) {
             startPeer();
-            assertEquals(true, litePeer.started());
         }
 
         byte[] file = litePeer.getFileSync(COMMON_CID);
@@ -88,7 +90,6 @@ public class PeerTest {
     public void GetFile() throws Exception {
         if (litePeer == null) {
             startPeer();
-            assertEquals(true, litePeer.started());
         }
 
         // Make the CID locally available
@@ -101,15 +102,98 @@ public class PeerTest {
 
         // Async call
         litePeer.getFile(
-                HELLO_WORLD_CID, new Peer.GetFileHandler() {
+            HELLO_WORLD_CID, new Peer.GetFileHandler() {
+                @Override
+                public void onNext(byte[] data) {
+                    try {
+                        logger.log(Level.INFO, "" + data.length);
+                        output.write(data);
+                    } catch (Throwable t) {
+                        assertNull(t);
+                        finishLatch.countDown();
+                    }
+
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    assertNull(t);
+                    finishLatch.countDown();
+                }
+
+                @Override
+                public void onComplete() {
+                    byte[] result = output.toByteArray();
+                    try {
+                        String resultString = new String(result, "UTF-8");
+                        assertEquals(HELLO_WORLD, resultString);
+                    } catch (Throwable t) {
+                        assertNull(t);
+                    }
+                    finishLatch.countDown();
+                }
+            });
+        // Await async call
+        finishLatch.await(30, TimeUnit.SECONDS);
+    }
+
+    // TODO: Add to test suite after addNode implemented
+    @Test
+    public void ResolveLink() throws Exception {
+        if (litePeer == null) {
+            startPeer();
+        }
+
+        final CountDownLatch finishLatch = new CountDownLatch(1);
+        final AtomicReference<String> CID = new AtomicReference<>("");
+        String link = "QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D/README.txt";
+
+        litePeer.resolveLink(
+            link,
+            new Peer.ResolveLinkHandler() {
+                @Override
+                public void onNext(String cid) {
+                    logger.log(Level.INFO, "CID: " + cid);
+                    CID.set(cid);
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    assertNull(t);
+                    finishLatch.countDown();
+                }
+
+                @Override
+                public void onComplete() {
+                    finishLatch.countDown();
+                }
+            }
+        );
+        // Await async call
+        finishLatch.await(30, TimeUnit.SECONDS);
+        assertEquals("QmP8jTG1m9GSDJLCbeWhVSVgEzCPPwXRdCRuJtQ5Tz9Kc9", CID.get());
+    }
+
+    @Test
+    public void GetNode() throws Exception {
+        if (litePeer == null) {
+            startPeer();
+        }
+
+        final CountDownLatch finishLatch = new CountDownLatch(1);
+        final AtomicReference<Integer> LINKS = new AtomicReference<>(0);
+        String link = "QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D";
+
+        litePeer.getNode(
+                link,
+                new Peer.ResolveNodeHandler() {
                     @Override
-                    public void onNext(byte[] data) {
-                        try {
-                            logger.log(Level.INFO, "" + data.length);
-                            output.write(data);
-                        } catch (Throwable t) {
-                            assertNull(t);
-                            finishLatch.countDown();
+                    public void onNext(Node node) {
+                        logger.log(Level.INFO, "Links: " + node.getLinksCount());
+                        LINKS.set(node.getLinksCount());
+                        List<Link> links = node.getLinksList();
+                        for (int i = 0; i < links.size(); i++) {
+                            logger.log(Level.INFO, links.get(i).getName() + ": " + links.get(i).getCid());
                         }
 
                     }
@@ -122,20 +206,15 @@ public class PeerTest {
 
                     @Override
                     public void onComplete() {
-                        byte[] result = output.toByteArray();
-                        try {
-                            String resultString = new String(result, "UTF-8");
-                            assertEquals(HELLO_WORLD, resultString);
-                        } catch (Throwable t) {
-                            assertNull(t);
-                        }
                         finishLatch.countDown();
                     }
-                });
+                }
+        );
         // Await async call
-        finishLatch.await();
+        finishLatch.await(30, TimeUnit.SECONDS);
+        Integer expected = 6;
+        assertEquals(expected, LINKS.get());
     }
-
 
     @Test
     public void AddFileSync() throws Exception {
