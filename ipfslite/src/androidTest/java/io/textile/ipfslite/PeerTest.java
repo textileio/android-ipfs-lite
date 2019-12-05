@@ -67,13 +67,13 @@ public class PeerTest {
     void startPeer() throws Exception {
         // Initialize & start
         litePeer = new Peer(createRepo(true), BuildConfig.DEBUG);
-        litePeer.start();
+        litePeer.Start();
     }
 
     @Test
     public void startTest() throws Exception {
         startPeer();
-        assertEquals(true, litePeer.started());
+        assertEquals(true, litePeer.Started());
     }
 
     @Test
@@ -82,7 +82,7 @@ public class PeerTest {
             startPeer();
         }
 
-        byte[] file = litePeer.getFileSync(COMMON_CID);
+        byte[] file = litePeer.GetFileSync(COMMON_CID);
 
         assertNotNull(file);
     }
@@ -93,7 +93,7 @@ public class PeerTest {
         }
 
         // Make the CID locally available
-        litePeer.addFileSync(HELLO_WORLD.getBytes());
+        litePeer.AddFileSync(HELLO_WORLD.getBytes());
 
         final CountDownLatch finishLatch = new CountDownLatch(1);
 
@@ -101,7 +101,7 @@ public class PeerTest {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
         // Async call
-        litePeer.getFile(
+        litePeer.GetFile(
             HELLO_WORLD_CID, new Peer.GetFileHandler() {
                 @Override
                 public void onNext(byte[] data) {
@@ -147,7 +147,7 @@ public class PeerTest {
         final AtomicReference<String> CID = new AtomicReference<>("");
         String link = "QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D/README.txt";
 
-        litePeer.resolveLink(
+        litePeer.ResolveLink(
             link,
             new Peer.ResolveLinkHandler() {
                 @Override
@@ -183,7 +183,7 @@ public class PeerTest {
         final AtomicReference<Integer> LINKS = new AtomicReference<>(0);
         String link = "QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D";
 
-        litePeer.getNode(
+        litePeer.GetNode(
                 link,
                 new Peer.ResolveNodeHandler() {
                     @Override
@@ -219,12 +219,12 @@ public class PeerTest {
     public void AddFileSync() throws Exception {
         if (litePeer == null) {
             startPeer();
-            assertEquals(true, litePeer.started());
+            assertEquals(true, litePeer.Started());
         }
-        String cid = litePeer.addFileSync(HELLO_WORLD.getBytes());
+        String cid = litePeer.AddFileSync(HELLO_WORLD.getBytes());
         assertEquals(HELLO_WORLD_CID, cid);
 
-        byte[] res = litePeer.getFileSync(HELLO_WORLD_CID);
+        byte[] res = litePeer.GetFileSync(HELLO_WORLD_CID);
         assertEquals(HELLO_WORLD, new String(res, "UTF-8"));
     }
 
@@ -232,17 +232,17 @@ public class PeerTest {
     public void AddFile() throws Exception {
         if (litePeer == null) {
             startPeer();
-            assertEquals(true, litePeer.started());
+            assertEquals(true, litePeer.Started());
         }
 
         // Make the CID locally available
-        litePeer.addFileSync(HELLO_WORLD.getBytes());
+        litePeer.AddFileSync(HELLO_WORLD.getBytes());
 
         AtomicBoolean ready = new AtomicBoolean();
         final AtomicReference<String> CID = new AtomicReference<>("");
 
         // Async call
-        litePeer.addFile(
+        litePeer.AddFile(
             HELLO_WORLD.getBytes(), new Peer.AddFileHandler() {
                 @Override
                 public void onNext(String cid) {
@@ -271,17 +271,17 @@ public class PeerTest {
     public void AddThenGetImage() throws Exception {
         if (litePeer == null) {
             startPeer();
-            assertEquals(true, litePeer.started());
+            assertEquals(true, litePeer.Started());
         }
 
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         File input1 = PeerTest.getCacheFile(ctx, "TEST1.JPG");
 
         byte[] fileBytes = Files.readAllBytes(input1.toPath());
-        String cid = litePeer.addFileSync(fileBytes);
+        String cid = litePeer.AddFileSync(fileBytes);
         assertEquals(TEST1_CID, cid);
 
-        byte[] res = litePeer.getFileSync(TEST1_CID);
+        byte[] res = litePeer.GetFileSync(TEST1_CID);
         assertArrayEquals(fileBytes, res);
     }
 

@@ -2,7 +2,6 @@ package io.textile.ipfslite;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,8 +63,8 @@ public class Peer implements LifecycleObserver {
         mode = debug;
     }
 
-    void ready() throws PeerException {
-        if (!started()) {
+    void Ready() throws PeerException {
+        if (!Started()) {
             throw new PeerException("Peer not started");
         }
     }
@@ -74,7 +73,7 @@ public class Peer implements LifecycleObserver {
      * start IPFS Lite instance with the provided repo path
      * @throws Exception The exception that occurred
      */
-    public static void start() throws Exception {
+    public static void Start() throws Exception {
         if (state == NodeState.Start) {
             return;
         }
@@ -90,7 +89,7 @@ public class Peer implements LifecycleObserver {
         state = NodeState.Start;
     }
 
-    public static void stop() {
+    public static void Stop() {
         if (state == NodeState.Stop) {
             return;
         }
@@ -157,7 +156,7 @@ public class Peer implements LifecycleObserver {
         void onError(final Throwable t);
     }
 
-    public void addFile(byte[] data, final AddFileHandler handler) {
+    public void AddFile(byte[] data, final AddFileHandler handler) {
 
         StreamObserver<AddFileRequest> addFileRequest = asyncStub.addFile(new StreamObserver<AddFileResponse>() {
             @Override
@@ -189,8 +188,8 @@ public class Peer implements LifecycleObserver {
         }).start();
     }
 
-    public String addFileSync(byte[] data) throws Exception {
-        ready();
+    public String AddFileSync(byte[] data) throws Exception {
+        Ready();
         final CountDownLatch finishLatch = new CountDownLatch(1);
         final AtomicReference<String> CID = new AtomicReference<>("");
         StreamObserver<AddFileResponse> responseObserver = new StreamObserver<AddFileResponse>() {
@@ -230,7 +229,7 @@ public class Peer implements LifecycleObserver {
         void onComplete();
         void onError(final Throwable t);
     }
-    public void getFile(String cid, final GetFileHandler handler) {
+    public void GetFile(String cid, final GetFileHandler handler) {
         asyncStub.getFile(FileRequest(cid), new StreamObserver<GetFileResponse>() {
             @Override
             public void onNext(GetFileResponse value) {
@@ -251,8 +250,8 @@ public class Peer implements LifecycleObserver {
         });
     }
 
-    public byte[] getFileSync(String cid) throws Exception {
-        ready();
+    public byte[] GetFileSync(String cid) throws Exception {
+        Ready();
         GetFileRequest request = FileRequest(cid);
         Iterator<GetFileResponse> response = blockingStub.getFile(request);
         // TODO is there a more efficient way to do this?
@@ -270,7 +269,7 @@ public class Peer implements LifecycleObserver {
         void onError(final Throwable t);
     }
 
-    public void resolveLink(String link, final ResolveLinkHandler handler) {
+    public void ResolveLink(String link, final ResolveLinkHandler handler) {
         String[] parts = link.split("/");
         if (parts.length == 0) {
             handler.onComplete();
@@ -312,7 +311,7 @@ public class Peer implements LifecycleObserver {
         void onError(final Throwable t);
     }
 
-    public void getNode(String cid, final ResolveNodeHandler handler) {
+    public void GetNode(String cid, final ResolveNodeHandler handler) {
         GetNodeRequest.Builder request = GetNodeRequest
                 .newBuilder()
                 .setCid(cid);
@@ -343,7 +342,7 @@ public class Peer implements LifecycleObserver {
         void onComplete();
         void onError(final Throwable t);
     }
-    public void removeNode(String cid, final RemoveNodeHandler handler) {
+    public void RemoveNode(String cid, final RemoveNodeHandler handler) {
         RemoveNodeRequest.Builder request = RemoveNodeRequest
                 .newBuilder()
                 .setCid(cid);
@@ -368,7 +367,7 @@ public class Peer implements LifecycleObserver {
         });
     }
 
-    public Boolean started() {
+    public Boolean Started() {
         return state == NodeState.Start;
     }
 }

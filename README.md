@@ -36,14 +36,14 @@ IPFS Lite runs the minimal setup required to provide a DAG service. It is a port
 
 - [x] Start IPFS Lite
 - [x] Stop IPFS Lite
-- [x] `getFile(String cid)` Get file by Content Address.
-- [x] `getFileSync(String cid)` Synchronously get file by Content Address.
-- [x] `addFile(byte[] data)` Add file to IPFS.
-- [x] `addFileSync(byte[] data)` Synchronously Add file to IPFS.
-- [x] `getNode(String cid)` Get IPLD node.
-- [x] `removeNode(String cid)` Remove IPLD node.
+- [x] `GetFile(String cid)` Get file by Content Address.
+- [x] `GetFileSync(String cid)` Synchronously get file by Content Address.
+- [x] `AddFile(byte[] data)` Add file to IPFS.
+- [x] `AddFileSync(byte[] data)` Synchronously Add file to IPFS.
+- [x] `GetNode(String cid)` Get IPLD node.
+- [x] `RemoveNode(String cid)` Remove IPLD node.
 - [ ] Add IPLD node.
-- [x] `resolveLink(String link)`
+- [x] `ResolveLink(String link)`
 
 ## Install
 
@@ -80,7 +80,7 @@ dependencies {
 ```java
   Boolean debug = false;
   Peer litePeer = new Peer('/path/', debug);
-  litePeer.start();
+  litePeer.Start();
 ```
 
 * To learn see how a path is choosen, see the [test suite example](https://github.com/textileio/android-ipfs-lite/blob/master/ipfslite/src/androidTest/java/io/textile/ipfslite/PeerTest.java#L38).
@@ -89,7 +89,7 @@ dependencies {
 
 ```java
   String message = "Hello World";
-  String cid = litePeer.addFileSync(message.getBytes());
+  String cid = litePeer.AddFileSync(message.getBytes());
 ```
 
 ### Add a file
@@ -97,18 +97,18 @@ dependencies {
 ```java
   File file = openFile("secret_plans");
   byte[] bytes = Files.readAllBytes(file.toPath());
-  String cid = litePeer.addFileSync(bytes);
+  String cid = litePeer.AddFileSync(bytes);
 
   // OR Asynchronously
-  litePeer.addFile(bytes, resultHandler);
+  litePeer.AddFile(bytes, resultHandler);
 ```
 
 ### Fetch a file by CID
 
 ```java
-  byte[] data = litePeer.getFileSync("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi");
+  byte[] data = litePeer.GetFileSync("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi");
   // OR Asynchronously
-  litePeer.getFile("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi", resultHandler);
+  litePeer.GetFile("bafybeic35nent64fowmiohupnwnkfm2uxh6vpnyjlt3selcodjipfrokgi", resultHandler);
 ```
 
 ## Maintainers
