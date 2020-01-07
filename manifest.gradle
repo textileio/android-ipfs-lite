@@ -39,7 +39,7 @@ ext {
     appcompatVersion = '28.0.0'
 
     // gRPC Version
-    gRPCVersion = '1.25.0'
+    gRPCVersion = '1.26.0'
     // gRPC IPFS Lite Version
     gRPCIpfsVersion = '0.1.2'
 
