@@ -3,6 +3,9 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "io.textile.grpc_ipfs_lite";
 option java_outer_classname = "IpfsLiteProto";
+option objc_class_prefix = "TTE";
+
+package ipfs_lite;
 
 // Model messages
 
@@ -140,7 +143,7 @@ message DeleteBlockRequest {
 }
 
 message DeleteBlockResponse {
-
+    
 }
 
 message HasBlockRequest {
@@ -172,7 +175,7 @@ message PutBlockRequest {
 }
 
 message PutBlockResponse {
-
+    
 }
 
 message PutBlocksRequest {
@@ -180,7 +183,7 @@ message PutBlocksRequest {
 }
 
 message PutBlocksResponse {
-
+    
 }
 
 message AllKeysRequest {
