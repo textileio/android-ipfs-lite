@@ -90,7 +90,7 @@ public class Peer implements LifecycleObserver {
         state = NodeState.Start;
     }
 
-    public static void stop() {
+    public static void stop() throws Exception {
         if (state == NodeState.Stop) {
             return;
         }
