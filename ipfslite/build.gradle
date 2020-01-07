@@ -199,12 +199,14 @@ protobuf {
             artifact = "io.grpc:protoc-gen-grpc-java:$gRPCVersion"
         }
         javalite {
-            artifact = "com.google.protobuf:protoc-gen-javalite:3.0.0"
+            artifact = "com.google.protobuf:protoc-gen-javalite:3.11.2"
         }
     }
     generateProtoTasks {
         all()*.plugins {
-            javalite {} // replace with java {} for full
+            java {
+                option 'lite'
+            }
             grpc {
                 // remove for full
                 option 'lite'
