@@ -81,7 +81,7 @@ Next, add the IPFS Lite dependency to your app module's `build.gradle` `dependen
 ```cmd
 dependencies {
     ...
-    implementation 'io.textile:ipfs-lite:0.1.4'
+    implementation 'io.textile:ipfslite:0.1.4'
     ...
 }
 ```
