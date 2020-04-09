@@ -92,7 +92,7 @@ dependencies {
 
 ```java
   Boolean debug = false;
-  Peer litePeer = new Peer('/path/', debug);
+  Peer litePeer = new Peer('/path/', debug, true);
   litePeer.start();
 ```
 

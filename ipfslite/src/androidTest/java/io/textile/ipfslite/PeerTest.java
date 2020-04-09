@@ -66,7 +66,7 @@ public class PeerTest {
 
     void startPeer() throws Exception {
         // Initialize & start
-        litePeer = new Peer(createRepo(true), BuildConfig.DEBUG);
+        litePeer = new Peer(createRepo(true), BuildConfig.DEBUG, true);
         litePeer.start();
     }
 

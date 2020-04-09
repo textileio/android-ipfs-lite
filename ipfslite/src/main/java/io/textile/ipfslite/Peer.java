@@ -42,6 +42,7 @@ public class Peer implements LifecycleObserver {
     private final static Logger logger =
             Logger.getLogger(TAG);
 
+    private static Boolean mem;
     private static Boolean mode;
     public static String path;
     private static long port;
@@ -59,9 +60,10 @@ public class Peer implements LifecycleObserver {
     /**
      * init the gRPC IPFS Lite server instance with the provided repo path
      */
-    public Peer(String datastorePath, Boolean debug) {
+    public Peer(String datastorePath, Boolean debug, Boolean lowMem) {
         path = datastorePath;
         mode = debug;
+        mem = lowMem;
     }
 
     void ready() throws PeerException {
@@ -78,7 +80,7 @@ public class Peer implements LifecycleObserver {
         if (state == NodeState.Start) {
             return;
         }
-        port = Mobile.start(path, mode);
+        port = Mobile.start(path, mode, mem);
 
         channel = ManagedChannelBuilder
                 .forAddress("localhost", Math.toIntExact(port))
