@@ -17,6 +17,7 @@ IPFS Lite runs the minimal setup required to get and put IPLD DAGs on the IPFS n
 - [android-ipfs-lite](#android-ipfs-lite)
   - [Table of Contents](#table-of-contents)
   - [Background](#background)
+    - [IPFS-lite Libraries](#ipfs-lite-libraries)
   - [Roadmap](#roadmap)
   - [Install](#install)
   - [Usage](#usage)
@@ -80,7 +81,7 @@ Next, add the IPFS Lite dependency to your app module's `build.gradle` `dependen
 ```cmd
 dependencies {
     ...
-    implementation 'io.textile:ipfslite:0.1.2'
+    implementation 'io.textile:ipfslite:0.1.4'
     ...
 }
 ```
@@ -91,7 +92,7 @@ dependencies {
 
 ```java
   Boolean debug = false;
-  Peer litePeer = new Peer('/path/', debug);
+  Peer litePeer = new Peer('/path/', debug, true);
   litePeer.start();
 ```
 

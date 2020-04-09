@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/textileio/android-ipfs-lite'
     gitUrl = 'https://github.com/textileio/android-ipfs-lite.git'
 
-    libraryVersion = '0.1.2'
+    libraryVersion = '0.1.4'
 
     minSdk = 26
     targetSdk = 28
@@ -41,7 +41,7 @@ ext {
     // gRPC Version
     gRPCVersion = '1.26.0'
     // gRPC IPFS Lite Version
-    gRPCIpfsVersion = '0.1.2'
+    gRPCIpfsVersion = '0.1.4'
 
     protobufVersion = '3.10.0'
 
